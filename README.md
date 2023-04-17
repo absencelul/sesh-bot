@@ -1,0 +1,2 @@
+# sesh-bot
+discord bot
