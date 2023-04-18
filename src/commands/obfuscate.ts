@@ -15,7 +15,11 @@ export const obfuscate: Command = {
     ),
   execute: async (interaction) => {
     await interaction.deferReply();
-    const attachment: Attachment = interaction.options.get("file")?.attachment!;
+    const attachment: Attachment = interaction.options.get("file")?.attachment as Attachment;
+    if (!attachment) {
+      await interaction.editReply("An error occurred.");
+      return;
+    }
     const headers = new Headers({
       "content-type": "application/json; charset=UTF-8",
       apikey: process.env.LUA_OBFUSCATOR_API_KEY as string,
