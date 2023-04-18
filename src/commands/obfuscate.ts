@@ -28,15 +28,15 @@ export const obfuscate: Command = {
       }
 
       const script = await fileResponse.text();
+      const URL =
+        (process.env.LUA_OBFUSCATOR_URI ||
+          "https://luaobfuscator.com/api/obfuscator") + "/one-click/hard";
       if (script) {
-        const response = await fetch(
-          `${process.env.LUA_OBFUSCATOR_URI}/one-click/hard`,
-          {
-            method: "POST",
-            headers,
-            body: script,
-          }
-        );
+        const response = await fetch(URL, {
+          method: "POST",
+          headers,
+          body: script,
+        });
         const responseJSON = await response.json();
         if (responseJSON.message) {
           await interaction.editReply(responseJSON.message);
