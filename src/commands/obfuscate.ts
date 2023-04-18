@@ -15,7 +15,8 @@ export const obfuscate: Command = {
     ),
   execute: async (interaction) => {
     await interaction.deferReply();
-    const attachment: Attachment = interaction.options.get("file")?.attachment as Attachment;
+    const attachment: Attachment = interaction.options.get("file")
+      ?.attachment as Attachment;
     if (!attachment) {
       await interaction.editReply("An error occurred.");
       return;
