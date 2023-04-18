@@ -1,6 +1,7 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
 
 import { Command } from "../interfaces/Command";
+import { Attachment } from "discord.js";
 
 export const obfuscate: Command = {
   data: new SlashCommandBuilder()
@@ -14,39 +15,45 @@ export const obfuscate: Command = {
     ),
   execute: async (interaction) => {
     await interaction.deferReply();
-    const script = interaction.options.get("script")?.value;
+    const attachment: Attachment = interaction.options.get("file")?.attachment!;
     const headers = new Headers({
       "content-type": "application/json; charset=UTF-8",
       apikey: process.env.LUA_OBFUSCATOR_API_KEY as string,
     });
-
     try {
-      const response = await fetch(
-        `${process.env.LUA_OBFUSCATOR_URI}/one-click/hard`,
-        {
-          method: "POST",
-          headers,
-          body: script as string,
-        }
-      );
-      const responseJSON = await response.json();
-      if (responseJSON.message) {
-        await interaction.editReply(responseJSON.message);
+      const fileResponse = await fetch(attachment.url);
+      if (!fileResponse.ok) {
+        await interaction.editReply("An error occurred.");
         return;
       }
-      await interaction.editReply({
-        content: "Here is your obfuscated script:",
-        files: [
+
+      const script = await fileResponse.text();
+      if (script) {
+        const response = await fetch(
+          `${process.env.LUA_OBFUSCATOR_URI}/one-click/hard`,
           {
-            name: "obf.lua",
-            attachment: Buffer.from(responseJSON.code),
-          },
-        ],
-      });
+            method: "POST",
+            headers,
+            body: script,
+          }
+        );
+        const responseJSON = await response.json();
+        if (responseJSON.message) {
+          await interaction.editReply(responseJSON.message);
+          return;
+        }
+        await interaction.editReply({
+          content: "Here is your obfuscated script:",
+          files: [
+            {
+              name: attachment.name,
+              attachment: Buffer.from(responseJSON.code),
+            },
+          ],
+        });
+      }
     } catch (error) {
-      console.error(error);
       await interaction.editReply("An error occurred.");
-      return;
     }
   },
 };
